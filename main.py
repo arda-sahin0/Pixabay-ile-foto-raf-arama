@@ -1,17 +1,9 @@
 import os
 import streamlit as st
 import requests
-from dotenv import load_dotenv
 
-load_dotenv("apikey.env")
-
-PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
-DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
-
-if not PIXABAY_API_KEY or not DEEPL_API_KEY:
-    st.error("API anahtarları eksik! Lütfen .env dosyanızı kontrol edin.")
-    st.stop()
-
+PIXABAY_API_KEY = "49631544-8162acdec9dab50e4506e6623"
+DEEPL_API_KEY = "2b85c694-42d6-4457-80bf-e99e298a70c1:fx"
 
 def translate_to_english(text):
     url = "https://api-free.deepl.com/v2/translate"
@@ -41,7 +33,7 @@ if query_turkce:
 else:
     query = ""
 
-st.write(f"İngilizce Çeviri: {query}")  # Debug için
+st.write(f"İngilizce Çeviri: {query}")  
 
 KATEGORILER = {
     "Tümü": "all", "Doğa": "nature", "Bilim": "science",
