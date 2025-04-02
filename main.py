@@ -1,33 +1,58 @@
+import os
 import streamlit as st
 import requests
-from PIL import Image
-from io import BytesIO
+from dotenv import load_dotenv
 
-API_KEY = "49631544-8162acdec9dab50e4506e6623"
-BASE_URL = "https://pixabay.com/api/"
+load_dotenv("apikey.env")
+
+PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
+DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
+
+if not PIXABAY_API_KEY or not DEEPL_API_KEY:
+    st.error("API anahtarları eksik! Lütfen .env dosyanızı kontrol edin.")
+    st.stop()
+
+
+def translate_to_english(text):
+    url = "https://api-free.deepl.com/v2/translate"
+    params = {
+        "auth_key": DEEPL_API_KEY,
+        "text": text,
+        "target_lang": "EN"
+    }
+    response = requests.post(url, data=params)
+    result = response.json()
+
+    if "translations" in result:
+        return result["translations"][0]["text"]
+    else:
+        return None
+
+
+st.title("Pixabay Görsel Arama ve İndirme")
+
+query_turkce = st.text_input("Aranacak kelime:", "güneş batımı")
+
+if query_turkce:
+    query = translate_to_english(query_turkce)
+    if not query:
+        st.error("Çeviri başarısız oldu!")
+        st.stop()
+else:
+    query = ""
+
+st.write(f"İngilizce Çeviri: {query}")  # Debug için
 
 KATEGORILER = {
-    "Tümü": "all",
-    "Doğa": "nature",
-    "Bilim": "science",
-    "Eğitim": "education",
-    "İnsanlar": "people",
-    "Hayvanlar": "animals",
-    "Seyahat": "travel"
+    "Tümü": "all", "Doğa": "nature", "Bilim": "science",
+    "Eğitim": "education", "İnsanlar": "people", "Hayvanlar": "animals", "Seyahat": "travel"
 }
 
 RENKLER = {
-    "Tümü": "all",
-    "Kırmızı": "red",
-    "Mavi": "blue",
-    "Yeşil": "green",
-    "Sarı": "yellow",
-    "Siyah": "black",
-    "Beyaz": "white"
+    "Tümü": "all", "Kırmızı": "red", "Mavi": "blue",
+    "Yeşil": "green", "Sarı": "yellow", "Siyah": "black", "Beyaz": "white"
 }
 
-st.title("Pixabay Görsel Arama ve İndirme")
-query = st.text_input("Aranacak kelime:", "")
 kategori_turkce = st.selectbox("Kategori Seçin:", list(KATEGORILER.keys()))
 renk_turkce = st.selectbox("Renk Seçin:", list(RENKLER.keys()))
 safe_search = st.checkbox("Güvenli Arama (Yetişkin İçeriği Gizle)", value=True)
@@ -35,17 +60,17 @@ safe_search = st.checkbox("Güvenli Arama (Yetişkin İçeriği Gizle)", value=T
 kategori = KATEGORILER[kategori_turkce]
 renk = RENKLER[renk_turkce]
 
-if st.button("Ara"):
+if st.button("Ara") and query:
     params = {
-        "key": API_KEY,
+        "key": PIXABAY_API_KEY,
         "q": query,
         "category": kategori if kategori != "all" else "",
         "colors": renk if renk != "all" else "",
         "safesearch": str(safe_search).lower(),
-        "per_page": 20
+        "per_page": 10
     }
 
-    response = requests.get(BASE_URL, params=params)
+    response = requests.get("https://pixabay.com/api/", params=params)
     data = response.json()
 
     if "hits" in data:
